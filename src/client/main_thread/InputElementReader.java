@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 /**
@@ -40,21 +41,24 @@ public class InputElementReader {
 
     public User readUser(){
         User user = new User();
-        user.setName(readWord("Type user name"));
+        readUserName(user);
         user.setPassword(readPassword("Type the password"));
         return user;
     }
 
     public User readNewUser() throws PasswordsDoNotMatchException {
         User user = new User();
-        user.setName(readWord("Type user name"));
+        readUserName(user);
         String password =  readPassword("Type the password");
         String repeatedPassword = readPassword("Repeat password");
-        System.out.println("First: " + password);
-        System.out.println("Second: " + repeatedPassword);
+        if (password == null && repeatedPassword == null){
+            user.setPassword(null);
+            return user;
+        }
         if (!password.equals(repeatedPassword)){
             throw new PasswordsDoNotMatchException();
         }
+        user.setPassword(password);
         return user;
     }
     private String readPassword(String helpMessage){
@@ -70,6 +74,16 @@ public class InputElementReader {
             return word;
         }
         return null;
+    }
+
+    private void readUserName(User user){
+        try {
+            user.setName(readWord("Type user name"));
+        }
+        catch (WrongInputException e){
+            warningComponent.showExceptionWarning(e);
+            readUserName(user);
+        }
     }
     private void readName(LabWork labWork){
         try {

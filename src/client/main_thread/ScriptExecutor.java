@@ -15,6 +15,27 @@ import java.util.Scanner;
 public class ScriptExecutor {
     public ScriptExecutor(){}
     public void executeScript(CommandData commandData) throws NestingLevelException, IOException, WrongInputException, ClassNotFoundException, InterruptedException, NotAuthorizedException, PasswordsDoNotMatchException {
+
+    /*
+                while (true) {
+                while(ableToRead){
+                    CommandData commandData = commandDataFormer.getNewCommandData();
+                    commandData.client = this;
+                    commandData.user = currentUser;
+                    String[] words = inputHandler.readLine();
+                    commandDataFormer.fillCommandData(words, commandData);
+                    if (!commandData.isEmpty()) {
+                        commandDataFormer.validateCommand(commandData);
+                        if (commandData.command.hasElement()) {
+                            commandData.element.setUser(currentUser);
+                        }
+                        webDispatcher.sendCommandDataToExecutor(commandData);
+                    }
+                    //showCurrentThreads();
+                }
+            }
+     */
+
         IClientCommandExecutor client = commandData.client;
         client.setNestingLevel(client.getNestingLevel() + 1);
         LinkedList<CommandData> commandsList = new LinkedList<>();
@@ -25,25 +46,33 @@ public class ScriptExecutor {
             Scanner scanner = new Scanner(Paths.get(filePath));
             String nextLine = client.getScriptReader().nextScriptLine(scanner);
             while (nextLine != null){
-                String[] words = nextLine.split("\\s+");
                 CommandData newCommandData = client.getCommandDataFormer().getNewCommandData();
-                newCommandData.client = commandData.client;
+                newCommandData.client = client;
+                newCommandData.user = client.getCurrentUser();
                 newCommandData.scriptScanner = scanner;
-                commandData.client.getCommandDataFormer().fillCommandData(words, newCommandData);
-                if (newCommandData.isEmpty()) {
-                    continue;
+
+                String[] words = nextLine.split("\\s+");
+                client.getCommandDataFormer().fillCommandData(words, newCommandData);
+                if (!newCommandData.isEmpty()) {
+                    client.getCommandDataFormer().validateCommand(newCommandData);
+                    if (commandData.command.hasElement()){
+                        commandData.element.setUser(commandData.client.getCurrentUser());
+                    }
+                    System.out.println("Read command " + newCommandData.command.getName());
                 }
-                commandData.client.getCommandDataFormer().validateCommand(commandData);
+
                 commandsList.addLast(newCommandData);
+
                 nextLine = client.getScriptReader().nextScriptLine(scanner);
             }
             while (commandsList.iterator().hasNext()){
+                Thread.sleep(1000);
                 CommandData currentCommand = commandsList.removeFirst();
                 client.getWebDispatcher().sendCommandDataToExecutor(currentCommand);
-                Thread.sleep(300);
                 //commandData.client.showServerRespond();
             }
             client.getMessageComponent().printEmptyLine();
             client.setNestingLevel(client.getNestingLevel() - 1);;
     }
+
 }

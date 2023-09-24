@@ -3,9 +3,11 @@ package client.main_thread;
 import client.result_thread.Warning;
 import data.LabWork;
 import data.User;
+import exceptions.EmptyFieldException;
 import exceptions.WrongInputException;
 import exceptions.users.PasswordsDoNotMatchException;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 /**
@@ -42,4 +44,7 @@ public class InputHandler {
         return inputElementReader.readNewUser();
     }
 
+    public User readScriptUser(Scanner scriptScanner) throws EmptyFieldException {
+        return scriptReader.readUserFromScript(scriptScanner);
+    };
 }

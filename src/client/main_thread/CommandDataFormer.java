@@ -1,7 +1,9 @@
 package client.main_thread;
 
 import abstractions.ICommand;
+import client.result_thread.Message;
 import data.CommandData;
+import data.User;
 import exceptions.DigitRequiredException;
 import exceptions.StringRequiredException;
 import exceptions.WrongInputException;
@@ -22,17 +24,32 @@ public class CommandDataFormer {
             throw new StringRequiredException(command.getName());
         }
         if (!command.isIgnoreAuthorization() && !commandData.client.userHadLoggedIn()){
-           // throw new NotAuthorizedException();
+           throw new NotAuthorizedException();
         }
         if (command.hasToReadUser() == 1){
-            commandData.user = commandData.client.getInputHandler().readUser();
+            if (commandData.client.isReadingScript()) {
+                commandData.user = commandData.client.getInputHandler().readScriptUser(commandData.scriptScanner);
+            }
+            else {
+                User user = commandData.client.getInputHandler().readUser();
+                commandData.user = user;
+            }
         }
         if (command.hasToReadUser() == 2){
-            commandData.user = commandData.client.getInputHandler().readNewUser();
+            if (commandData.client.isReadingScript()) {
+                commandData.user = commandData.client.getInputHandler().readScriptUser(commandData.scriptScanner);
+            }
+            else {
+                User user = commandData.client.getInputHandler().readNewUser();
+                commandData.user = user;
+            }
         }
         if (command.hasElement()) {
+            commandData.user = commandData.client.getCurrentUser();
             if (commandData.client.isReadingScript()) {
                 commandData.element = commandData.client.getInputHandler().readScriptElement(commandData.scriptScanner);
+                System.out.println("read element: \n");
+                commandData.client.getMessageComponent().printElement(commandData.element);
             } else {
                 commandData.element = commandData.client.getInputHandler().readInputElement();
             }

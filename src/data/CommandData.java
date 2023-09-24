@@ -5,6 +5,7 @@ import abstractions.ICommand;
 import abstractions.IServerCommandExecutor;
 
 import java.io.Serializable;
+import java.nio.channels.SelectionKey;
 import java.util.Scanner;
 
 /**
@@ -23,6 +24,7 @@ public class CommandData implements Serializable {
     transient public IServerCommandExecutor labCollection;
     transient public IClientCommandExecutor client;
     transient public Scanner scriptScanner;
+    transient public SelectionKey selectionKey;
 
     public boolean isEmpty(){
         return this.command == null;

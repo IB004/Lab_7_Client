@@ -6,13 +6,13 @@ import client.result_thread.Warning;
 import data.CommandData;
 import data.ResultData;
 
+
 import java.io.*;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class WebDispatcher {
     private volatile SocketChannel socketChannel;
@@ -21,9 +21,10 @@ public class WebDispatcher {
     private int writeBytes = 0;
     private int objectLength = 0;
 
-    public volatile BlockingDeque<CommandData> sendingDeque = new LinkedBlockingDeque<>();
+    public volatile BlockingQueue<CommandData> sendingQueue = new LinkedBlockingQueue<>();
     public volatile boolean isConnected = false;
     private final Message messageComponent;
+
     private final Warning warningComponent;
     public SocketChannel getSocketChannel() {
         return socketChannel;
@@ -62,12 +63,15 @@ public class WebDispatcher {
     }
 
     //main thread
-    public void sendCommandDataToExecutor(CommandData commandData) throws IOException, InterruptedException {
+    public void sendCommandDataToExecutor(CommandData commandData) throws InterruptedException {
+        if (commandData == null || commandData.command == null){
+            return;
+        }
         if (commandData.command.isClientCommand()){
             sendCommandToClient(commandData);
         }
         else{
-            sendingDeque.put(commandData);
+            sendingQueue.put(commandData);
         }
     }
 
@@ -92,6 +96,7 @@ public class WebDispatcher {
         synchronized (socketChannel){
             socketChannel.write(buffer);
         }
+        System.out.println("Send " + buffer.capacity() + " bytes to server");
 
     }
 
